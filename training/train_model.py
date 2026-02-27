@@ -11,39 +11,81 @@ import joblib
 import os
 
 # ─────────────────────────────────────────
-# STEP 1 — Generate Synthetic Dataset
+# STEP 1 — Load Real Kaggle Dataset
+# ─────────────────────────────────────────
+df = pd.read_csv('../data/Placement_Data_Full_Class.csv')
+
+print("✅ Real Kaggle dataset loaded")
+print(f"   Shape : {df.shape}")
+print(f"   Columns : {list(df.columns)}")
+
+# ─────────────────────────────────────────
+# STEP 2 — Drop Unnecessary Columns
+# ─────────────────────────────────────────
+df.drop(columns=['sl_no', 'ssc_b', 'hsc_b', 'hsc_s', 'degree_t'], inplace=True)
+
+# ─────────────────────────────────────────
+# STEP 3 — Rename Columns to Our Standard
+# ─────────────────────────────────────────
+df.rename(columns={
+    'ssc_p':          'ssc_percentage',
+    'hsc_p':          'hsc_percentage',
+    'degree_p':       'degree_percentage',
+    'etest_p':        'aptitude_test_score',
+    'mba_p':          'communication_score',
+    'workex':         'work_experience',
+    'specialisation': 'branch',
+    'status':         'placed'
+}, inplace=True)
+
+# ─────────────────────────────────────────
+# STEP 4 — Fix Target Variable
+# ─────────────────────────────────────────
+df['placed'] = df['placed'].map({'Placed': 1, 'Not Placed': 0})
+
+# ─────────────────────────────────────────
+# STEP 5 — Fix Work Experience
+# ─────────────────────────────────────────
+df['work_experience_months'] = df['work_experience'].map({'Yes': 6, 'No': 0})
+df.drop(columns=['work_experience'], inplace=True)
+
+# ─────────────────────────────────────────
+# STEP 6 — Add Missing Columns Synthetically
 # ─────────────────────────────────────────
 np.random.seed(42)
-n = 500
+n = len(df)
 
-branches = ['CSE', 'IT', 'ECE', 'Mechanical', 'Civil']
-genders = ['Male', 'Female']
-
-data = {
-    'ssc_percentage':             np.random.uniform(50, 98, n),
-    'hsc_percentage':             np.random.uniform(50, 98, n),
-    'degree_percentage':          np.random.uniform(50, 98, n),
-    'cgpa':                       np.random.uniform(5.0, 10.0, n),
-    'active_backlogs':            np.random.randint(0, 5, n),
-    'aptitude_test_score':        np.random.uniform(30, 100, n),
-    'coding_test_score':          np.random.uniform(20, 100, n),
-    'technical_interview_score':  np.random.uniform(20, 100, n),
-    'communication_score':        np.random.uniform(20, 100, n),
-    'internships_count':          np.random.randint(0, 4, n),
-    'projects_count':             np.random.randint(0, 6, n),
-    'certifications_count':       np.random.randint(0, 5, n),
-    'hackathons_participated':    np.random.randint(0, 5, n),
-    'attendance_percentage':      np.random.uniform(50, 100, n),
-    'extracurricular_participation': np.random.randint(0, 2, n),
-    'work_experience_months':     np.random.randint(0, 12, n),
-    'branch':                     np.random.choice(branches, n),
-    'gender':                     np.random.choice(genders, n),
-}
-
-df = pd.DataFrame(data)
+df['cgpa']                        = df['degree_percentage'] / 10
+df['active_backlogs']             = np.random.randint(0, 4, n)
+df['coding_test_score']           = np.random.uniform(20, 100, n)
+df['technical_interview_score']   = np.random.uniform(20, 100, n)
+df['internships_count']           = np.random.randint(0, 4, n)
+df['projects_count']              = np.random.randint(0, 6, n)
+df['certifications_count']        = np.random.randint(0, 5, n)
+df['hackathons_participated']     = np.random.randint(0, 5, n)
+df['attendance_percentage']       = np.random.uniform(60, 100, n)
+df['extracurricular_participation'] = np.random.randint(0, 2, n)
 
 # ─────────────────────────────────────────
-# STEP 2 — Create Derived Features
+# STEP 7 — Handle Missing Values
+# ─────────────────────────────────────────
+# Fill ALL missing numeric columns with their mean
+for col in df.select_dtypes(include=[np.number]).columns:
+    df[col].fillna(df[col].mean(), inplace=True)
+
+# Fill missing categorical columns with mode
+for col in df.select_dtypes(include=['object']).columns:
+    df[col].fillna(df[col].mode()[0], inplace=True)
+
+# Drop any remaining nulls
+df.dropna(inplace=True)
+
+print(f"\n✅ After cleaning shape : {df.shape}")
+print(f"   Placed     : {df['placed'].sum()}")
+print(f"   Not Placed : {len(df) - df['placed'].sum()}")
+
+# ─────────────────────────────────────────
+# STEP 8 — Derived Features
 # ─────────────────────────────────────────
 df['academic_score'] = (
     0.3 * df['ssc_percentage'] +
@@ -66,38 +108,17 @@ df['activity_score'] = (
 )
 
 # ─────────────────────────────────────────
-# STEP 3 — Generate Target Variable
-# ─────────────────────────────────────────
-placement_score = (
-    df['cgpa'] * 5 +
-    df['skill_score'] * 0.3 +
-    df['activity_score'] * 2 +
-    df['attendance_percentage'] * 0.1 -
-    df['active_backlogs'] * 3
-)
-
-threshold = placement_score.median()
-df['placed'] = (placement_score >= threshold).astype(int)
-
-# ─────────────────────────────────────────
-# STEP 4 — Save Dataset
-# ─────────────────────────────────────────
-os.makedirs('../data', exist_ok=True)
-df.to_csv('../data/placement_data.csv', index=False)
-print("✅ Dataset saved to data/placement_data.csv")
-print(f"   Total records : {len(df)}")
-print(f"   Placed        : {df['placed'].sum()}")
-print(f"   Not Placed    : {len(df) - df['placed'].sum()}")
-
-# ─────────────────────────────────────────
-# STEP 5 — Preprocessing
+# STEP 9 — Encode Categorical Columns
 # ─────────────────────────────────────────
 le_branch = LabelEncoder()
 le_gender = LabelEncoder()
 
-df['branch']  = le_branch.fit_transform(df['branch'])
-df['gender']  = le_gender.fit_transform(df['gender'])
+df['branch'] = le_branch.fit_transform(df['branch'])
+df['gender'] = le_gender.fit_transform(df['gender'])
 
+# ─────────────────────────────────────────
+# STEP 10 — Prepare Features
+# ─────────────────────────────────────────
 features = [
     'ssc_percentage', 'hsc_percentage', 'degree_percentage', 'cgpa',
     'active_backlogs', 'aptitude_test_score', 'coding_test_score',
@@ -122,7 +143,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled  = scaler.transform(X_test)
 
 # ─────────────────────────────────────────
-# STEP 6 — Train Models
+# STEP 11 — Train Models
 # ─────────────────────────────────────────
 
 # Logistic Regression
@@ -144,12 +165,12 @@ print(f"🌲 Random Forest Accuracy       : {rf_acc * 100:.2f}%")
 print(classification_report(y_test, rf_pred))
 
 # ─────────────────────────────────────────
-# STEP 7 — Save Best Model
+# STEP 12 — Save Everything
 # ─────────────────────────────────────────
 os.makedirs('../model', exist_ok=True)
 
-joblib.dump(rf,     '../model/placement_model.pkl')
-joblib.dump(scaler, '../model/scaler.pkl')
+joblib.dump(rf,        '../model/placement_model.pkl')
+joblib.dump(scaler,    '../model/scaler.pkl')
 joblib.dump(le_branch, '../model/le_branch.pkl')
 joblib.dump(le_gender, '../model/le_gender.pkl')
 joblib.dump(features,  '../model/features.pkl')
@@ -157,10 +178,10 @@ joblib.dump(features,  '../model/features.pkl')
 print("\n✅ Model saved to model/placement_model.pkl")
 
 # ─────────────────────────────────────────
-# STEP 8 — Feature Importance Plot
+# STEP 13 — Feature Importance Plot
 # ─────────────────────────────────────────
 importance_df = pd.DataFrame({
-    'Feature':   features,
+    'Feature':    features,
     'Importance': rf.feature_importances_
 }).sort_values('Importance', ascending=False)
 
@@ -170,10 +191,10 @@ plt.title('Feature Importance - Random Forest')
 plt.tight_layout()
 plt.savefig('../model/feature_importance.png')
 plt.show()
-print("✅ Feature importance plot saved to model/feature_importance.png")
+print("✅ Feature importance plot saved")
 
 # ─────────────────────────────────────────
-# STEP 9 — Confusion Matrix
+# STEP 14 — Confusion Matrix
 # ─────────────────────────────────────────
 cm = confusion_matrix(y_test, rf_pred)
 plt.figure(figsize=(5, 4))
@@ -184,6 +205,6 @@ plt.title('Confusion Matrix - Random Forest')
 plt.tight_layout()
 plt.savefig('../model/confusion_matrix.png')
 plt.show()
-print("✅ Confusion matrix saved to model/confusion_matrix.png")
+print("✅ Confusion matrix saved")
 
-print("\n🎉 Training complete! All files saved in /model folder.")
+print("\n🎉 Training complete with real Kaggle data!")

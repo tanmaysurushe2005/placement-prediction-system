@@ -33,9 +33,10 @@ model, scaler, le_branch, le_gender, features = load_model()
 # ─────────────────────────────────────────
 # NAVIGATION TABS
 # ─────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🔮 Single Prediction",
     "📂 Bulk Prediction",
+    "🆚 Student Comparison",
     "📊 Model Insights"
 ])
 
@@ -383,9 +384,216 @@ with tab2:
             st.info("Make sure your CSV matches the sample template format.")
 
 # ═════════════════════════════════════════
-# TAB 3 — MODEL INSIGHTS
+# TAB 3 — STUDENT COMPARISON
 # ═════════════════════════════════════════
 with tab3:
+    st.title("🆚 Student Comparison")
+    st.markdown("Compare two students side by side and see who has better placement chances.")
+    st.divider()
+
+    # ── Two Column Input Form ──
+    comp_col1, comp_col2 = st.columns(2)
+
+    # ── Student 1 ──
+    with comp_col1:
+        st.subheader("👤 Student 1")
+        s1_ssc        = st.slider("SSC %",          40.0, 100.0, 70.0, key="s1_ssc")
+        s1_hsc        = st.slider("HSC %",          40.0, 100.0, 70.0, key="s1_hsc")
+        s1_degree     = st.slider("Degree %",       40.0, 100.0, 70.0, key="s1_degree")
+        s1_cgpa       = st.slider("CGPA",            4.0,  10.0,  7.0, key="s1_cgpa")
+        s1_backlogs   = st.number_input("Backlogs",  0, 10, 0,          key="s1_backlogs")
+        s1_aptitude   = st.slider("Aptitude Score", 0.0, 100.0, 60.0,  key="s1_aptitude")
+        s1_coding     = st.slider("Coding Score",   0.0, 100.0, 60.0,  key="s1_coding")
+        s1_technical  = st.slider("Technical Score",0.0, 100.0, 60.0,  key="s1_technical")
+        s1_comm       = st.slider("Communication",  0.0, 100.0, 60.0,  key="s1_comm")
+        s1_internships    = st.number_input("Internships",    0, 10, 0, key="s1_intern")
+        s1_projects       = st.number_input("Projects",       0, 20, 2, key="s1_projects")
+        s1_certs          = st.number_input("Certifications", 0, 20, 1, key="s1_certs")
+        s1_hackathons     = st.number_input("Hackathons",     0, 20, 0, key="s1_hack")
+        s1_attendance     = st.slider("Attendance %",  40.0, 100.0, 80.0, key="s1_attend")
+        s1_extra          = st.selectbox("Extracurricular", [0, 1], format_func=lambda x: "Yes" if x==1 else "No", key="s1_extra")
+        s1_work           = st.number_input("Work Exp (months)", 0, 24, 0, key="s1_work")
+        s1_branch         = st.selectbox("Branch", ['CSE','IT','ECE','Mechanical','Civil'], key="s1_branch")
+        s1_gender         = st.selectbox("Gender", ['Male','Female'], key="s1_gender")
+
+    # ── Student 2 ──
+    with comp_col2:
+        st.subheader("👤 Student 2")
+        s2_ssc        = st.slider("SSC %",          40.0, 100.0, 65.0, key="s2_ssc")
+        s2_hsc        = st.slider("HSC %",          40.0, 100.0, 65.0, key="s2_hsc")
+        s2_degree     = st.slider("Degree %",       40.0, 100.0, 65.0, key="s2_degree")
+        s2_cgpa       = st.slider("CGPA",            4.0,  10.0,  6.5, key="s2_cgpa")
+        s2_backlogs   = st.number_input("Backlogs",  0, 10, 1,          key="s2_backlogs")
+        s2_aptitude   = st.slider("Aptitude Score", 0.0, 100.0, 50.0,  key="s2_aptitude")
+        s2_coding     = st.slider("Coding Score",   0.0, 100.0, 50.0,  key="s2_coding")
+        s2_technical  = st.slider("Technical Score",0.0, 100.0, 50.0,  key="s2_technical")
+        s2_comm       = st.slider("Communication",  0.0, 100.0, 50.0,  key="s2_comm")
+        s2_internships    = st.number_input("Internships",    0, 10, 0, key="s2_intern")
+        s2_projects       = st.number_input("Projects",       0, 20, 1, key="s2_projects")
+        s2_certs          = st.number_input("Certifications", 0, 20, 0, key="s2_certs")
+        s2_hackathons     = st.number_input("Hackathons",     0, 20, 0, key="s2_hack")
+        s2_attendance     = st.slider("Attendance %",  40.0, 100.0, 70.0, key="s2_attend")
+        s2_extra          = st.selectbox("Extracurricular", [0, 1], format_func=lambda x: "Yes" if x==1 else "No", key="s2_extra")
+        s2_work           = st.number_input("Work Exp (months)", 0, 24, 0, key="s2_work")
+        s2_branch         = st.selectbox("Branch", ['CSE','IT','ECE','Mechanical','Civil'], key="s2_branch")
+        s2_gender         = st.selectbox("Gender", ['Male','Female'], key="s2_gender")
+
+    st.divider()
+    compare_btn = st.button("🆚 Compare Students", use_container_width=True)
+
+    if compare_btn:
+
+        def get_prediction(ssc, hsc, degree, cgpa, backlogs,
+                           aptitude, coding, technical, comm,
+                           internships, projects, certs, hackathons,
+                           attendance, extra, work, branch, gender):
+
+            academic = (0.3*ssc + 0.3*hsc + 0.4*degree)
+            skill    = (aptitude + coding + technical + comm) / 4
+            activity = (internships + projects + certs + hackathons)
+
+            try:
+                branch_enc = le_branch.transform([branch])[0]
+            except:
+                branch_enc = 0
+            try:
+                gender_enc = le_gender.transform([gender])[0]
+            except:
+                gender_enc = 0
+
+            input_dict = {
+                'ssc_percentage':               ssc,
+                'hsc_percentage':               hsc,
+                'degree_percentage':            degree,
+                'cgpa':                         cgpa,
+                'active_backlogs':              backlogs,
+                'aptitude_test_score':          aptitude,
+                'coding_test_score':            coding,
+                'technical_interview_score':    technical,
+                'communication_score':          comm,
+                'internships_count':            internships,
+                'projects_count':               projects,
+                'certifications_count':         certs,
+                'hackathons_participated':      hackathons,
+                'attendance_percentage':        attendance,
+                'extracurricular_participation': extra,
+                'work_experience_months':       work,
+                'branch':                       branch_enc,
+                'gender':                       gender_enc,
+                'academic_score':               academic,
+                'skill_score':                  skill,
+                'activity_score':               activity,
+            }
+
+            input_df    = pd.DataFrame([input_dict])[features]
+            probability = model.predict_proba(input_df)[0][1]
+            prediction  = model.predict(input_df)[0]
+
+            return probability, prediction, academic, skill, activity
+
+        # Get predictions for both
+        s1_prob, s1_pred, s1_acad, s1_skill, s1_activ = get_prediction(
+            s1_ssc, s1_hsc, s1_degree, s1_cgpa, s1_backlogs,
+            s1_aptitude, s1_coding, s1_technical, s1_comm,
+            s1_internships, s1_projects, s1_certs, s1_hackathons,
+            s1_attendance, s1_extra, s1_work, s1_branch, s1_gender
+        )
+
+        s2_prob, s2_pred, s2_acad, s2_skill, s2_activ = get_prediction(
+            s2_ssc, s2_hsc, s2_degree, s2_cgpa, s2_backlogs,
+            s2_aptitude, s2_coding, s2_technical, s2_comm,
+            s2_internships, s2_projects, s2_certs, s2_hackathons,
+            s2_attendance, s2_extra, s2_work, s2_branch, s2_gender
+        )
+
+        # ── Result Cards ──
+        st.subheader("🏆 Comparison Results")
+        res1, res2 = st.columns(2)
+
+        with res1:
+            st.markdown("### 👤 Student 1")
+            if s1_pred == 1:
+                st.success("✅ Likely PLACED")
+            else:
+                st.error("❌ At Risk")
+            st.metric("Placement Probability", f"{s1_prob*100:.2f}%")
+            st.progress(float(s1_prob))
+
+        with res2:
+            st.markdown("### 👤 Student 2")
+            if s2_pred == 1:
+                st.success("✅ Likely PLACED")
+            else:
+                st.error("❌ At Risk")
+            st.metric("Placement Probability", f"{s2_prob*100:.2f}%")
+            st.progress(float(s2_prob))
+
+        st.divider()
+
+        # ── Comparison Bar Chart ──
+        st.subheader("📊 Score Comparison Chart")
+
+        categories  = ['Academic Score', 'Skill Score', 'Activity Score', 'Placement %']
+        student1_scores = [s1_acad, s1_skill, s1_activ, s1_prob*100]
+        student2_scores = [s2_acad, s2_skill, s2_activ, s2_prob*100]
+
+        x     = np.arange(len(categories))
+        width = 0.35
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        bars1 = ax.bar(x - width/2, student1_scores, width, label='Student 1', color='#2196F3')
+        bars2 = ax.bar(x + width/2, student2_scores, width, label='Student 2', color='#FF9800')
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(categories)
+        ax.set_ylabel('Score')
+        ax.set_title('Student 1 vs Student 2 — Score Comparison')
+        ax.legend()
+
+        for bar in bars1:
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                    f'{bar.get_height():.1f}', ha='center', va='bottom', fontsize=9)
+        for bar in bars2:
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                    f'{bar.get_height():.1f}', ha='center', va='bottom', fontsize=9)
+
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close()
+
+        st.divider()
+
+        # ── Final Verdict ──
+        st.subheader("🏅 Final Verdict")
+
+        if s1_prob > s2_prob:
+            diff = (s1_prob - s2_prob) * 100
+            st.success(f"🏆 Student 1 has a HIGHER placement probability by {diff:.2f}%")
+        elif s2_prob > s1_prob:
+            diff = (s2_prob - s1_prob) * 100
+            st.success(f"🏆 Student 2 has a HIGHER placement probability by {diff:.2f}%")
+        else:
+            st.info("🤝 Both students have EQUAL placement probability")
+
+        # ── Detailed Score Table ──
+        st.subheader("📋 Detailed Score Table")
+        comparison_table = pd.DataFrame({
+            'Metric':      ['Placement Probability', 'Academic Score',
+                            'Skill Score', 'Activity Score', 'CGPA',
+                            'Backlogs', 'Attendance'],
+            'Student 1':   [f"{s1_prob*100:.2f}%", f"{s1_acad:.2f}",
+                            f"{s1_skill:.2f}", f"{s1_activ:.2f}",
+                            s1_cgpa, s1_backlogs, f"{s1_attendance}%"],
+            'Student 2':   [f"{s2_prob*100:.2f}%", f"{s2_acad:.2f}",
+                            f"{s2_skill:.2f}", f"{s2_activ:.2f}",
+                            s2_cgpa, s2_backlogs, f"{s2_attendance}%"],
+        })
+        st.dataframe(comparison_table, use_container_width=True)
+
+# ═════════════════════════════════════════
+# TAB 4 — MODEL INSIGHTS
+# ═════════════════════════════════════════
+with tab4:
     st.title("📊 Model Insights")
     st.divider()
 
@@ -405,8 +613,3 @@ with tab3:
     else:
         st.info("Confusion matrix will appear after training.")
 
-# ─────────────────────────────────────────
-# FOOTER
-# ─────────────────────────────────────────
-st.divider()
-st.markdown("Built with ❤️ using Streamlit + Random Forest | Placement Prediction System")

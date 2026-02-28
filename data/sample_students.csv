@@ -1,0 +1,11 @@
+ssc_percentage,hsc_percentage,degree_percentage,cgpa,active_backlogs,aptitude_test_score,coding_test_score,technical_interview_score,communication_score,internships_count,projects_count,certifications_count,hackathons_participated,attendance_percentage,extracurricular_participation,work_experience_months,branch,gender
+78.5,72.3,75.6,7.8,0,72.0,68.0,74.0,70.0,2,3,2,1,88.0,1,6,CSE,Male
+65.0,60.5,62.3,6.2,2,45.0,40.0,50.0,55.0,0,1,1,0,65.0,0,0,Mechanical,Male
+85.0,80.0,82.5,8.5,0,88.0,85.0,90.0,87.0,3,5,4,3,95.0,1,12,CSE,Female
+55.0,52.0,58.0,5.8,3,35.0,30.0,40.0,42.0,0,1,0,0,60.0,0,0,Civil,Male
+72.0,68.5,70.0,7.2,1,60.0,65.0,62.0,68.0,1,2,2,1,78.0,1,0,IT,Female
+90.0,88.0,91.0,9.1,0,92.0,90.0,95.0,93.0,3,6,5,4,98.0,1,12,CSE,Male
+48.0,50.0,52.0,5.2,4,30.0,25.0,35.0,38.0,0,0,0,0,55.0,0,0,Mechanical,Female
+80.0,75.0,78.0,7.9,0,75.0,80.0,78.0,76.0,2,4,3,2,90.0,1,6,ECE,Male
+63.0,58.0,65.0,6.5,2,50.0,45.0,55.0,52.0,1,2,1,0,70.0,0,0,IT,Male
+88.0,85.0,87.0,8.8,0,85.0,88.0,86.0,90.0,3,5,4,3,96.0,1,12,CSE,Female

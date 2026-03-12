@@ -193,11 +193,23 @@ cd ..
 ```bash
 streamlit run app.py
 ```
+The app will start and display:
+```
+You can now view your Streamlit app in your browser.
+Local URL: http://localhost:8501
+```
 
-#### Step 5 — Open in browser
+#### Step 5 — Access the app
+Open your browser and navigate to:
 ```
 http://localhost:8501
 ```
+
+**Available Tabs:**
+- 🔮 **Single Prediction** - Predict placement for one student
+- 📂 **Bulk Prediction** - Upload CSV for batch predictions
+- 🆚 **Comparison** - Compare multiple students
+- 📊 **Model Insights** - View feature importance & metrics
 
 ---
 

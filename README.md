@@ -1,7 +1,15 @@
 # 🎓 Student Placement Prediction System
 
-A Machine Learning based web application that predicts whether a student 
+A full-stack Machine Learning web application that predicts whether a student 
 will get placed based on their academic performance, skills, and activities.
+
+**Features:**
+- ⚡ **Two UI Options**: Use Streamlit for quick analysis or React for a modern web experience
+- 🔮 **Single Predictions**: Predict placement probability for individual students
+- 📂 **Batch Processing**: Upload CSV files for bulk predictions
+- 🆚 **Student Comparison**: Compare multiple students to identify strengths/weaknesses
+- 📊 **Model Insights**: View feature importance and model performance metrics
+- 🤖 **Machine Learning**: Random Forest classifier with 92% accuracy
 
 ---
 
@@ -27,10 +35,12 @@ Build a placement prediction system that:
 ```
 placement_prediction/
 │
-├── data/
-│   └── placement_data.csv       ← dataset
+├── data/                        ← datasets
+│   ├── Placement_Data_Full_Class.csv
+│   ├── placement_data.csv
+│   └── sample_students.csv
 │
-├── model/
+├── model/                       ← trained model artifacts
 │   ├── placement_model.pkl      ← trained Random Forest model
 │   ├── scaler.pkl               ← standard scaler
 │   ├── le_branch.pkl            ← branch encoder
@@ -39,12 +49,34 @@ placement_prediction/
 │   ├── feature_importance.png   ← feature importance chart
 │   └── confusion_matrix.png     ← confusion matrix
 │
+├── backend/                     ← FastAPI REST API
+│   ├── main.py                  ← FastAPI server with endpoints
+│   ├── utils.py                 ← backend utilities
+│   └── __pycache__/
+│
+├── frontend/                    ← React + Vite web application
+│   ├── src/
+│   │   ├── main.jsx             ← React entry point
+│   │   ├── App.jsx              ← main component
+│   │   ├── index.css            ← global styles
+│   │   └── components/
+│   │       ├── Navbar.jsx       ← navigation component
+│   │       ├── SinglePrediction.jsx    ← single student prediction
+│   │       ├── BulkPrediction.jsx      ← batch CSV upload
+│   │       ├── Comparison.jsx          ← student comparison
+│   │       └── ModelInsights.jsx       ← model visualizations
+│   ├── public/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── eslint.config.js
+│
 ├── training/
 │   └── train_model.py           ← model training script
 │
-├── app.py                       ← Streamlit web application
-├── utils.py                     ← helper functions
-├── requirements.txt             ← dependencies
+├── app.py                       ← Streamlit web application (alternative UI)
+├── utils.py                     ← shared utility functions
+├── requirements.txt             ← Python dependencies
 └── README.md                    ← project documentation
 ```
 
@@ -104,47 +136,135 @@ placement_prediction/
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
+### Backend & Core
+| Component | Technology |
 |---|---|
 | Language | Python 3.13 |
 | ML Library | Scikit-learn |
-| UI Framework | Streamlit |
+| API Framework | FastAPI |
 | Data Handling | Pandas, NumPy |
-| Visualization | Matplotlib, Seaborn |
 | Model Storage | Joblib |
+
+### Frontend Options
+| Option | Technology |
+|---|---|
+| **React Frontend** | React 18 + Vite + JSX |
+| **Alternative UI** | Streamlit |
+| **Styling** | CSS with custom properties |
+
+### Development & DevOps
+| Component | Technology |
+|---|---|
+| Visualization | Matplotlib, Seaborn |
+| Frontend Build Tool | Vite |
+| Linting | ESLint |
 | Version Control | Git + GitHub |
 
 ---
 
 ## ⚙️ How to Run
 
-### Step 1 — Clone the repository
+### 📋 Prerequisites
+- Python 3.13+
+- Node.js 16+ (for React frontend)
+- Git
+
+### 🚀 Quick Start: Streamlit Application
+
+#### Step 1 — Clone the repository
 ```bash
-git clone https://github.com/yourusername/placement-prediction-system.git
+git clone https://github.com/tanmaysurushe2005/placement-prediction-system.git
 cd placement-prediction-system
 ```
 
-### Step 2 — Install dependencies
+#### Step 2 — Install Python dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 3 — Train the model
+#### Step 3 — Train the model (if needed)
 ```bash
 cd training
 python train_model.py
 cd ..
 ```
 
-### Step 4 — Run the app
+#### Step 4 — Run the Streamlit app
 ```bash
 streamlit run app.py
 ```
 
-### Step 5 — Open in browser
+#### Step 5 — Open in browser
 ```
 http://localhost:8501
 ```
+
+---
+
+### 🎨 Full Stack: React Frontend + FastAPI Backend
+
+#### Step 1 — Clone & navigate to project
+```bash
+git clone https://github.com/tanmaysurushe2005/placement-prediction-system.git
+cd placement-prediction-system
+```
+
+#### Step 2 — Setup Python backend
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Train the model (if needed)
+cd training
+python train_model.py
+cd ..
+
+# Start FastAPI server
+cd backend
+python -m uvicorn main:app --reload
+# API runs on http://localhost:8000
+cd ..
+```
+
+#### Step 3 — Setup React frontend
+```bash
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+# App runs on http://localhost:5173
+```
+
+#### Step 4 — Access the application
+- **Frontend**: http://localhost:5173
+- **API Docs**: http://localhost:8000/docs
+- **API Redoc**: http://localhost:8000/redoc
+
+---
+
+### 🎛️ Backend API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/predict` | POST | Single student prediction |
+| `/batch-predict` | POST | Batch predictions from CSV |
+| `/compare` | POST | Compare multiple students |
+| `/model-insights` | GET | Feature importance & metrics |
+
+---
+
+### 🔌 React Frontend Components
+
+| Component | Feature |
+|---|---|
+| **Navbar** | Navigation between pages |
+| **SinglePrediction** | Predict placement for one student |
+| **BulkPrediction** | Upload CSV for batch predictions |
+| **Comparison** | Compare 2+ students side-by-side |
+| **ModelInsights** | Visualize feature importance & confusion matrix |
 
 ---
 
